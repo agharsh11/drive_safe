@@ -25,15 +25,27 @@ predict = dlib.shape_predictor("../shape_predictor_68_face_landmarks.dat")
 (rStart, rEnd) = (36, 42)
 cap=cv2.VideoCapture(0)
 flag=0
-blink_rate=0
+blink_rate=30
+blink=0
+last=timer()
+time=0
 while True:
+	start = timer()
+	time=time+start-last;
+	last=start
+	if time>5:
+		if blink>15:
+			print "strain" 
+		blink=0
+		time=0
+	#print time
 	ret, frame=cap.read()
 	frame = cv2.resize(frame, (450,300))
 	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	subjects = detect(gray, 0)
 	for subject in subjects:
 		shape = predict(gray, subject)
-		print type(shape)
+		#print type(shape)
 		shape = shape_to_np(shape)
 		leftEye = shape[lStart:lEnd]
 		rightEye = shape[rStart:rEnd]
@@ -46,7 +58,8 @@ while True:
 		cv2.drawContours(frame, [rightEyeHull], -1, (0, 255, 0), 1)
 		if aspect < thresh:
 			flag += 1
-			print (flag)
+			blink = blink + 1
+			print (blink)
 			if flag >= frame_check:
 				cv2.putText(frame, "****************ALERT!****************", (10, 30),
 					cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
